@@ -16,13 +16,13 @@ Car::Car(double _x, double _y, double _s, double _d, double _yaw, double _speed,
 }
 
 Car::Car(const nlohmann::json &j)
-  : x(j[1]["x"])
-  , y(j[1]["y"])
-  , s(j[1]["s"])
-  , d(j[1]["d"])
-  , yaw(Utility::deg2rad(j[1]["yaw"]))
-  , speed(Utility::mph2mps(j[1]["speed"]))
-  , path(j[1]["previous_path_x"], j[1]["previous_path_y"])
+  : x(j["x"])
+  , y(j["y"])
+  , s(j["s"])
+  , d(j["d"])
+  , yaw(Utility::deg2rad(j["yaw"]))
+  , speed(Utility::mph2mps(j["speed"]))
+  , path(j["previous_path_x"], j["previous_path_y"])
 {
 }
 
@@ -57,7 +57,7 @@ Traffic::Traffic(const nlohmann::json &j)
   : mEgoCar(j)
   , mOtherCars()
 {
-  auto sensor_fusion = j[1]["sensor_fusion"];
+  auto sensor_fusion = j["sensor_fusion"];
 
   for (int i = 0; i < sensor_fusion.size(); ++i)
   {
