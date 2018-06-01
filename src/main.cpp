@@ -64,7 +64,7 @@ int main() {
           tfPlanner.update(j[1]);
           TPath path = tfPlanner.getEgoCarPath();
 
-          std::cout << "test..." << std::endl;
+        //  std::cout << "test..." << std::endl;
 
           json msgJson;
       
