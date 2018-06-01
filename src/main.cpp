@@ -38,9 +38,10 @@ int main() {
 
 
   Track track("../data/highway_map.csv");
+  TrafficPlanner tfPlanner(track);
 
 
-  h.onMessage([&track](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode)
+  h.onMessage([&track, &tfPlanner](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode)
   {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -60,18 +61,16 @@ int main() {
         {
           // j[1] is the data JSON object
 
-          Traffic traffic(j[1]);
-          std::cout << "cars=" << traffic.getOtherCarsNum() << std::endl;
+          tfPlanner.update(j[1]);
+          TPath path = tfPlanner.getEgoCarPath();
+
+          std::cout << "test..." << std::endl;
 
           json msgJson;
-
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
-
-
+      
           // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
+          msgJson["next_x"] = path.x;
+          msgJson["next_y"] = path.y;
 
           auto msg = "42[\"control\","+ msgJson.dump()+"]";
 

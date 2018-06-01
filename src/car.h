@@ -7,16 +7,20 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 
+class Track;
+
 struct TPath
 {
   typedef std::vector<double> TCoordinates;
 
   TPath()
-    : x(), y()
+    : x()
+    , y()
   { }
 
   TPath(const TCoordinates &xCoord, const TCoordinates &yCoord)
-    : x(xCoord), y(yCoord)
+    : x(xCoord)
+    , y(yCoord)
   { }
 
   TCoordinates x;
@@ -37,8 +41,11 @@ public:
 
   double getSafetyDistance(double friction) const;
 
+  double getSCoordInTime(double dt) const;
+
   int getLaneNum() const;
 
+ 
 public:
   double x; // x coordinate in map coordinate system
   double y; // y coordinate in map coordinate system
@@ -50,19 +57,29 @@ public:
 
 };
 
-class Traffic
+
+
+class TrafficPlanner
 {
 public:
-  typedef std::vector<Car> TCars;
+  TrafficPlanner(const Track &track);
 
-  Traffic(const nlohmann::json &j);
-
-  std::size_t getOtherCarsNum() const { return mOtherCars.size();  }
+  void update(const nlohmann::json &j);
+  TPath getEgoCarPath() const;
 
 private:
-  Car     mEgoCar;    // ego (main) car
-  TCars   mOtherCars; // list of all other cars on the same side of the road
+  Car predictCarKeepingItsLane(const Car& car, double dt) const;
 
+private:
+  typedef std::vector<Car> TCars;
+
+  const Track  &mTrack;
+  Car           mEgoCar;    // ego (main) car
+  TCars         mOtherCars; // list of all other cars on the same side of the road
+  
+  const static int PATH_ITEM_COUNT = 50;
+  const static int EGO_CAR_LANE_NUM = 6;
+  
 
 };
 
