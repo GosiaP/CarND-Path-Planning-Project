@@ -59,7 +59,7 @@ int Car::getLaneNum() const
 
 TrafficPlanner::TrafficPlanner(const Track &track)
   : mTrack(track)
-  , mEgoCar(0.0, 0.0, 0.0, EGO_CAR_LANE_NUM, 0.0, 0.0, TPath())
+  , mEgoCar(0.0, 0.0, 0.0, EGO_CAR_D_VALUE, 0.0, 0.0, TPath())
   , mOtherCars()
 {
 }
@@ -97,15 +97,18 @@ Car TrafficPlanner::predictCarKeepingItsLane(const Car& car, double dt) const
   return newCar;
 }
 
-TPath TrafficPlanner::getEgoCarPath() const
+TPath TrafficPlanner::simulateEgoCarPath() const
 {
   TPath path;
-  Car car = mEgoCar;
   for (int i = 0; i < PATH_ITEM_COUNT; ++i)
   {
-    car = predictCarKeepingItsLane(car, 0.2);
-    path.x.push_back(car.x);
-    path.y.push_back(car.y);
+    double s = mEgoCar.s + (i + 1) * 0.5;
+    double d = EGO_CAR_D_VALUE;
+
+    std::vector<double> xy = mTrack.getXY(s, d);
+
+    path.x.push_back(xy[0]);
+    path.y.push_back(xy[1]);
   }
   return path;
 }

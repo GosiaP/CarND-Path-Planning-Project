@@ -65,7 +65,7 @@ public:
   TrafficPlanner(const Track &track);
 
   void update(const nlohmann::json &j);
-  TPath getEgoCarPath() const;
+  TPath simulateEgoCarPath() const;
 
 private:
   Car predictCarKeepingItsLane(const Car& car, double dt) const;
@@ -78,7 +78,7 @@ private:
   TCars         mOtherCars; // list of all other cars on the same side of the road
   
   const static int PATH_ITEM_COUNT = 50;
-  const static int EGO_CAR_LANE_NUM = 6;
+  const static int EGO_CAR_D_VALUE = 6;
   
 
 };

@@ -41,7 +41,7 @@ int main() {
   TrafficPlanner tfPlanner(track);
 
 
-  h.onMessage([&track, &tfPlanner](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode)
+  h.onMessage([&track, &tfPlanner](uWS::WebSocket<uWS::SERVER> *ws, char *data, size_t length, uWS::OpCode opCode)
   {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -62,26 +62,31 @@ int main() {
           // j[1] is the data JSON object
 
           tfPlanner.update(j[1]);
-          TPath path = tfPlanner.getEgoCarPath();
-
+          TPath path = tfPlanner.simulateEgoCarPath();
         //  std::cout << "test..." << std::endl;
+
+          vector<double> next_x_vals;
+          vector<double> next_y_vals;
 
           json msgJson;
       
           // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
+         // msgJson["next_x"] = next_x_vals;
+        //  msgJson["next_y"] = next_y_vals;
+
           msgJson["next_x"] = path.x;
           msgJson["next_y"] = path.y;
 
           auto msg = "42[\"control\","+ msgJson.dump()+"]";
 
           //this_thread::sleep_for(chrono::milliseconds(1000));
-          ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+          ws->send(msg.data(), msg.length(), uWS::OpCode::TEXT);
           
         }
       } else {
         // Manual driving
         std::string msg = "42[\"manual\",{}]";
-        ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+        ws->send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
   });
@@ -100,18 +105,20 @@ int main() {
     }
   });
 
-  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req) {
     std::cout << "Connected!!!" << std::endl;
   });
 
-  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code,
+  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> *ws, int code,
                          char *message, size_t length) {
-    ws.close();
+    ws->close();
     std::cout << "Disconnected" << std::endl;
   });
 
   int port = 4567;
-  if (h.listen(port)) {
+  auto host = "127.0.0.1";
+  if (h.listen(host, port)) {
+ // if (h.listen(port)) {
     std::cout << "Listening to port " << port << std::endl;
   } else {
     std::cerr << "Failed to listen to port" << std::endl;

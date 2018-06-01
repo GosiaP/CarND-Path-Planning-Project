@@ -11,7 +11,8 @@ public:
 
   static constexpr double pi()
   {
-    return M_PI;
+    return 3.14159265358979323846;
+    //return M_PI;
   }
   
   // For converting back and forth between radians and degrees.
@@ -43,13 +44,13 @@ public:
    */
   static double normalize_angle(double a)
   {
-    while (a > M_PI)
+    while (a > pi())
     {
-      a -= 2.0f * M_PI;
+      a -= 2.0f * pi();
     }
-    while (a < -M_PI)
+    while (a < -pi())
     {
-      a += 2.0f * M_PI;
+      a += 2.0f * pi();
     }
     return a;
   }
