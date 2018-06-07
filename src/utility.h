@@ -3,7 +3,7 @@
 
 #include <math.h>
 #include <limits>
-
+#include <algorithm>
 
 struct FrenetPnt
 {
@@ -156,12 +156,6 @@ struct Utility
     return fabs(num) < std::numeric_limits<double>::epsilon();
   }
 
-  template<class T>
-  inline T round(T const& v_, int prec_)
-  {
-    auto const base = static_cast<std::int64_t>(std::pow(10, prec_));
-    return std::round(v_ * base) / base;
-  }
 
   // Lane center from the origin (d)
   static double getLaneCenter_D(int lane_id_)
@@ -185,7 +179,8 @@ struct Utility
   // Lane at a given distance from the road center
   static int getLaneId(double d_)
   {
-    return std::floor(d_ / 4.0);
+    return std::max(0, int(d_) / 4);
+    //return std::floor(d_ / 4.0);
   }
 };
 
