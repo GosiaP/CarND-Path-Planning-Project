@@ -1,117 +1,69 @@
 
 #include "car.h"
 #include "utility.h"
-#include "track.h"
+#include "road.h"
 
 
-Car::Car(double _x, double _y, double _s, double _d, double _yaw, double _speed, const TPath &_path)
-  : x(_x)
-  , y(_y)
-  , s (_s)
-  , d(_d)
-  , yaw(_yaw)
-  , speed(_speed)
-  , path(_path)
+NonEgoCar::NonEgoCar(nlohmann::json const& j)
+  : uid(j[0].get<int>())
+  , x(j[1])
+  , y(j[2])
+  , vx(j[3])
+  , vy(j[4])
+  , s(j[5])
+  , d(j[6])
 {
 }
 
-Car::Car(const nlohmann::json &j)
+
+EgoCar::EgoCar()
+  : x(0.0)
+  , y(0.0)
+  , yaw(0.0)
+  , speed(0.0)
+  , s(0.0)
+  , d(0.0)
+{
+}
+
+EgoCar::EgoCar(nlohmann::json const& j)
   : x(j["x"])
   , y(j["y"])
+  , yaw(Utility::deg2rad(j["yaw"]))
   , s(j["s"])
   , d(j["d"])
-  , yaw(Utility::deg2rad(j["yaw"]))
   , speed(Utility::mph2mps(j["speed"]))
-  , path(j["previous_path_x"], j["previous_path_y"])
 {
 }
 
-
-void Car::carToMapCoordinates(double &inOutX, double &inOutY) const
+EgoCarLocalization::EgoCarLocalization(Traffic const& trf)
 {
-  double xRef = inOutX;
-  double yRef = inOutY;
-  inOutX = xRef * cos(yaw) - yRef * sin(yaw) + x;
-  inOutY = xRef * sin(yaw) + yRef * cos(yaw) + y;
-}
-
-void Car::mapToCarCoordinates(double &inOutX, double &inOutY) const
-{
-  double shiftX = inOutX - x;
-  double shiftY = inOutY - y;
-  inOutX = shiftX * cos(-yaw) - shiftY * sin(-yaw);
-  inOutY = shiftX * sin(-yaw) + shiftY * cos(-yaw);
-}
-
-double Car::getSafetyDistance(double friction) const
-{
-  return (speed * speed) / (2.0 * friction * 9.81);
-}
-
-int Car::getLaneNum() const
-{
-  return std::max(0, int(d) / 4);
-}
-
-
-//------------------------------
-
-
-TrafficPlanner::TrafficPlanner(const Track &track)
-  : mTrack(track)
-  , mEgoCar(0.0, 0.0, 0.0, EGO_CAR_D_VALUE, 0.0, 0.0, TPath())
-  , mOtherCars()
-{
-}
-
-void TrafficPlanner::update(const nlohmann::json &j)
-{
-  mEgoCar = Car(j);
-  mOtherCars.clear();
-
-  auto sensor_fusion = j["sensor_fusion"];
-  for (int i = 0; i < sensor_fusion.size(); ++i)
+  // estimate reference position based on current and past data.
+  // The estimations are from the lessons and from Q / A walkthrough
+  if (trf.previous_path.size() < 2u)
   {
-    auto d = sensor_fusion[i];
-    // id, x, y, vx, vy, s, d
-    Car car(d[1], d[2], d[5], d[6],
-      Utility::vector_angle(d[3], d[4]),
-      Utility::vector_len(d[3], d[4]),
-      TPath());
-    mOtherCars.push_back(car);
+    // first time calculation
+    ego = trf.ego;
+    prev_x = ego.x - std::cos(ego.yaw);
+    prev_y = ego.y - std::sin(ego.yaw);
   }
-}
-
-Car TrafficPlanner::predictCarKeepingItsLane(const Car& car, double dt) const
-{
-  double pred_s = car.s + dt * car.speed;
-
-  std::vector<double> xy = mTrack.getXY(pred_s, car.d);
-  Car newCar(xy[0],
-              xy[1],
-              pred_s,
-              car.d,
-              car.yaw,
-              car.speed,
-              TPath());
-  return newCar;
-}
-
-TPath TrafficPlanner::simulateEgoCarPath() const
-{
-  TPath path;
-  for (int i = 0; i < PATH_ITEM_COUNT; ++i)
+  else
   {
-    double s = mEgoCar.s + (i + 1) * 0.5;
-    double d = EGO_CAR_D_VALUE;
+    // standard case, path calculated before
+    ego.x = *(trf.previous_path.x.end() - 1);
+    ego.y = *(trf.previous_path.y.end() - 1);
 
-    std::vector<double> xy = mTrack.getXY(s, d);
+    prev_x = *(trf.previous_path.x.end() - 2);
+    prev_y = *(trf.previous_path.y.end() - 2);
 
-    path.x.push_back(xy[0]);
-    path.y.push_back(xy[1]);
+    ego.yaw = std::atan2(ego.y - prev_y, ego.x - prev_x);
+    ego.speed = Utility::distance(prev_x, prev_y, ego.x, ego.y) / 0.02;
+
+    ego.s = trf.path_end.s;
+    ego.d = trf.path_end.d;
   }
-  return path;
-}
 
+  lane_id = Utility::getLaneId(ego.d);
+}
 
 

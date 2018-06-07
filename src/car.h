@@ -1,5 +1,5 @@
-#ifndef Car_H
-#define Car_H
+#ifndef CAR_H
+#define CAR_H
 
 #include <vector>
 #include <assert.h>
@@ -7,80 +7,52 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 
-class Track;
+struct Traffic;
 
-struct TPath
+
+struct NonEgoCar
 {
-  typedef std::vector<double> TCoordinates;
+  // unique identifier of a car
+  int uid;
 
-  TPath()
-    : x()
-    , y()
-  { }
+  // position in map coordinates
+  double x, y;
 
-  TPath(const TCoordinates &xCoord, const TCoordinates &yCoord)
-    : x(xCoord)
-    , y(yCoord)
-  { }
+  // velocity in map coordinates direction (m/s)
+  double vx, vy;
 
-  TCoordinates x;
-  TCoordinates y;
-};
+  // position in Frenet coordinates
+  double s, d;
 
-class Car
-{
-public:
-
-  Car(double _x, double _y, double _s, double _d, double _yaw, double _speed, const TPath &_path);
-  Car(const nlohmann::json &j);
-
-
-  void carToMapCoordinates(double &inOutX, double &inOutY) const;
-
-  void mapToCarCoordinates(double &inOutX, double &inOutY) const;
-
-  double getSafetyDistance(double friction) const;
-
-  double getSCoordInTime(double dt) const;
-
-  int getLaneNum() const;
-
- 
-public:
-  double x; // x coordinate in map coordinate system
-  double y; // y coordinate in map coordinate system
-  double s; // s coordinate in Frenet coordinate system 
-  double d; // d coordinate in Frenet coordinate system 
-  double yaw; // yaw angle of car in radians in map coordinate system
-  double speed; // in m/s
-  TPath path;
-
+  NonEgoCar(nlohmann::json const& j);
 };
 
 
+struct EgoCar {
+  // ego position in map coordinates
+  double x, y;
 
-class TrafficPlanner
-{
-public:
-  TrafficPlanner(const Track &track);
+  // ego yaw angle in map coordinates (radians)
+  double yaw;
 
-  void update(const nlohmann::json &j);
-  TPath simulateEgoCarPath() const;
+  // ego speed (m/s)
+  double speed;
 
-private:
-  Car predictCarKeepingItsLane(const Car& car, double dt) const;
+  // position in Frenet coordinates
+  double s, d;
 
-private:
-  typedef std::vector<Car> TCars;
-
-  const Track  &mTrack;
-  Car           mEgoCar;    // ego (main) car
-  TCars         mOtherCars; // list of all other cars on the same side of the road
-  
-  const static int PATH_ITEM_COUNT = 50;
-  const static int EGO_CAR_D_VALUE = 6;
-  
-
+  EgoCar();
+  EgoCar(nlohmann::json const& j);
 };
 
-#endif // Car_H
+struct EgoCarLocalization
+{
+  EgoCar ego; // ego car
+  double prev_x, prev_y; // previous x, y positions  
+  int lane_id; // reference lane
+
+  EgoCarLocalization(Traffic const& trf);
+};
+
+
+#endif // CAR_H

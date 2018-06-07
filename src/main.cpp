@@ -8,8 +8,8 @@
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
-#include "track.h"
-#include "car.h"
+#include "map.h"
+#include "traffic_planner.h"
 
 using namespace std;
 
@@ -37,11 +37,11 @@ int main() {
   uWS::Hub h;
 
 
-  Track track("../data/highway_map.csv");
-  TrafficPlanner tfPlanner(track);
+  HighwayMap higwayMap("../data/highway_map.csv");
+  TrafficPlanner trafficPlanner(higwayMap);
 
 
-  h.onMessage([&track, &tfPlanner](uWS::WebSocket<uWS::SERVER> *ws, char *data, size_t length, uWS::OpCode opCode)
+  h.onMessage([&higwayMap, &trafficPlanner](uWS::WebSocket<uWS::SERVER> *ws, char *data, size_t length, uWS::OpCode opCode)
   {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -61,19 +61,15 @@ int main() {
         {
           // j[1] is the data JSON object
 
-          tfPlanner.update(j[1]);
-          TPath path = tfPlanner.simulateEgoCarPath();
-        //  std::cout << "test..." << std::endl;
-
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          // traffic snapshot
+          Traffic traffic(j[1]);
+          // provide ego car path (trajectory)
+          Path path = trafficPlanner.getEgoCarPath(traffic);
+        
+          //  std::cout << "test..." << std::endl;
 
           json msgJson;
       
-          // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-         // msgJson["next_x"] = next_x_vals;
-        //  msgJson["next_y"] = next_y_vals;
-
           msgJson["next_x"] = path.x;
           msgJson["next_y"] = path.y;
 
@@ -83,7 +79,9 @@ int main() {
           ws->send(msg.data(), msg.length(), uWS::OpCode::TEXT);
           
         }
-      } else {
+      } 
+      else
+      {
         // Manual driving
         std::string msg = "42[\"manual\",{}]";
         ws->send(msg.data(), msg.length(), uWS::OpCode::TEXT);
