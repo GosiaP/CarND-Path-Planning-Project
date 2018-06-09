@@ -11,34 +11,41 @@ BehaviourPlanner::BehaviourPlanner()
 
 int BehaviourPlanner::findBestLane(EgoCarLocalization const& egoCarLo, LaneInfoOnRoad const& roadLI) const
 {
-  using best_lane_info_t = std::tuple<int, double, LaneInfo>;
-
-  std::vector<best_lane_info_t> bli;
+  struct best_lane_info_t
   {
+    int lane_id;
+    double speed;
+    LaneInfo li;
+  };
+  std::vector<best_lane_info_t> bli;
+
+  {
+    // pick only clear lanes with infinite speeds 
     int lane_id = 0;
-    std::transform(roadLI.begin(), roadLI.end(), 
-      std::back_inserter(bli), [&](LaneInfo const& li)
-      {
-        return std::make_tuple(lane_id++, li.getSpeed(), li);
-      });
+    for (int i = 0; i < roadLI.size(); ++i)
+    {
+      best_lane_info_t bi;
+      bi.lane_id = lane_id++;
+      bi.speed = roadLI[i].getSpeed();
+      bi.li = roadLI[i];
+
+      if (!bi.li.isFree() && bi.speed < Utility::INF)
+        continue;
+
+      bli.push_back(bi);
+    }
   }
-
-  // pick only clear lanes with infinite speeds 
-  bli.erase(std::remove_if(bli.begin(), bli.end(),
-    [&](best_lane_info_t const& li)
-      {
-        return
-          !std::get<2>(li).isFree() && std::get<1>(li) < Utility::INF;
-      }), bli.end());
-
+   
   // sort lanes by distance to reference lane
   std::sort(bli.begin(), bli.end(),
-    [&](auto const& l, auto const& r) {
-    return abs(std::get<0>(l) - egoCarLo.lane_id) < abs(std::get<0>(l) - egoCarLo.lane_id);
-  });
+    [&](best_lane_info_t const& l, best_lane_info_t const& r)
+    {
+      return abs(l.lane_id - egoCarLo.lane_id) < abs(r.lane_id - egoCarLo.lane_id);
+    }); 
 
-  return !bli.empty() ? std::get<0>(bli.front()) : egoCarLo.lane_id;
+  return !bli.empty() ? bli.front().lane_id : egoCarLo.lane_id;
 }
+
 
 double BehaviourPlanner::cte(EgoCarLocalization const& egoCarLo) const
 {
