@@ -44,10 +44,26 @@
   {
     struct CarOnLane
     {
-      bool exist = false;
-      int id = -1;
-      double gap = Utility::INF;
-      double speed = Utility::INF;
+      bool exist;
+      int id;
+      double gap;
+      double speed;
+
+      CarOnLane()
+        : exist(false)
+        , id(-1)
+        , gap(Utility::INF)
+        , speed(Utility::INF)
+      {
+      }
+
+      CarOnLane(bool _exist, int _id, double _gap, double _speed)
+        : exist(_exist)
+        , id(_id)
+        , gap(_gap)
+        , speed(_speed)
+      {
+      }
     };
 
     CarOnLane front;

@@ -4,8 +4,8 @@
 
 
 LaneInfo::LaneInfo()
-  : front (CarOnLane{ false,  -1, Utility::INF, Utility::INF })
-  , back( CarOnLane{ false,  -1, Utility::INF, 0. })
+  : front(false,  -1, Utility::INF, Utility::INF)
+  , back(false,  -1, Utility::INF, 0.)
 {
 }
 
