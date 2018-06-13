@@ -32,7 +32,7 @@ string hasData(string s) {
   return "";
 }
 
-#define MY_WINDOWS (1)
+#define MY_WINDOWS (0)
 
 int main() {
   uWS::Hub h;
