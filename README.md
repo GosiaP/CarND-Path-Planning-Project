@@ -1,6 +1,62 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
+[//]: # (Image Referencengs)
+[image1]: ./images/traffic_planner_screenshot.png
+
+
+## Intoduction
+The goal of this project is to navigate a car around a simulated road, including traffic - other cars driving on the same road side.
+The road, ego car and other cars data are provided as waypoint data, telemetry and sensor fusion data respectively.
+
+The implementation is based on the suggestions from the Q&A session and can be summarized in the following steps:
+1. ego car parameters and traffic related cars are localized
+2. information about all lanes on the road in driving direction is determined
+3. behaviour planning - optimal target lane and target speed for ego car are detected
+4. optimal trajectory for ego car is calculated using of the target lane and speed
+
+## Implementation
+The steps described above are done based on telemetry and sensor fusion data updated in constant time interval and provided by traffic planner implemented in TrafficPlaner class (`traffic_planner.h, cpp` files).
+The TrafficPlanner provides a `getEgoCarPath()` method which provides a best trajectory for ego car. The trajectory is represented as list of global map coordinates.
+
+### 1. Ego car and other car position
+The telemetry and sensor fusion data are provided in json format, that are loaded in preprocessed. They represent current ego car position, its previous position inclusive a lane number the car is located. See `EgoCar`, `NonEgoCar` and `EgoCarLocalization` classes in `car.h, cpp` files.
+
+### 2. Lanes on the road
+To be able to find an optimal trajectory of ego car the data about each lane on a road are collected. The data contain, as suggested in the lessons, information about nearest car in front and back of ego car, its speed and the gap towards the ego car.
+The implementation is done in `LaneInfo` and `LaneInfoOnRoad` classes in `road.h, cpp` files.
+
+### 3. Behaviour planning
+The behaviour planning takes a decision about optimal target lane and target speed of ego car. For that the planner keeps an internal state and data representing next steps that must be done - target lane and target speed of ego car.
+The implementation is done in `BehaviourPlanner` class in 'traffic_planner.h, cpp files`.
+Following internal states are available:
+* initial
+* keep lane
+* prepare changing lane
+* changing lane
+
+The transition between states are possible at any time the planner is updated. The initial state is possible only one time on first update of telemetry and sensor fusion data.
+The planner calculates best lanes for ego car and set is a target lane for next iteration. The optimal speed of is estimated and evaluated to avoid violation of speed limit.
+
+For calculation of speed a safety margins for maximum speed are used. The length of gap between car in front and back of ego car are analyzed.
+This is done in `BehaviourPlanner::findBestLane` method. The best lane is defined as a lane with maximum speed depending on current lane situation as represented by LaneInfoOnRoad. Adjusting of speed is implemented in `TrafficPlanner::adaptSpeed` method in `traffic_planner.h, cpp` files.
+
+### 4. Optimal Trajectory
+The target trajectory of ego car is calculated based on suggestions form lessons.
+An information about current and next predicted locations are used to determine a discrete sequence of trajectory points - 3 next points in 30 meter space. They are interpolated to spline curve later to get smooth trajectory.
+
+The interpolation is provided in `TrafficPlanner::interpolatePath` method using open source library in `spline.h` file. The optimal trajectory is calculated in `TrafficPlanner::createTrajectory` method and provided as list of points in global map coordinates.
+
+## Reflection
+The resulting traffic planner works well, but not perfectly. Sometime I got problems with violations of maximal jerk. Testing of the implementation required more time as testing if the ego car is driving at least 4.32 miles without incident requires some time.
+Impelmetaion of the traffic planner was very interesting. I attached a screenshot and video from one of successful drives.
+
+![Screenshot][image1]
+
+[Video](https://github.com/GosiaP/CarND-Path-Planning-Project/blob/master/images/traffic_planner_video.mp4)
+
+
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).
 
