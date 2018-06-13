@@ -39,7 +39,7 @@ EgoCar::EgoCar(nlohmann::json const& j)
 EgoCarLocalization::EgoCarLocalization(Traffic const& trf)
 {
   // estimate reference position based on current and past data.
-  // The estimations are from the lessons and from Q / A walkthrough
+  // The estimations are from the lessons and from QA walkthrough
   if (trf.previous_path.size() < 2u)
   {
     // first time calculation

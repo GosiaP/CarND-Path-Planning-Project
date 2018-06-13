@@ -40,7 +40,7 @@ LaneInfoOnRoad::LaneInfoOnRoad(std::size_t s)
 {
 }
 
-LaneInfoOnRoad LaneInfoOnRoad::create(double ego_s_, Traffic const& traffic)
+LaneInfoOnRoad LaneInfoOnRoad::create(double ego_s, Traffic const& traffic)
 {
   LaneInfoOnRoad laneOnRoad(3);
 
@@ -58,28 +58,18 @@ LaneInfoOnRoad LaneInfoOnRoad::create(double ego_s_, Traffic const& traffic)
       // estimate positions based on sensor data
       auto other_speed = Utility::v_len(other.vx, other.vy);
       auto other_s = other.s + other_speed * pred_distance * 0.02;
-      auto other_gap = std::fabs(other_s - ego_s_);
+      auto other_gap = std::fabs(other_s - ego_s);
 
       // Is other car in front of me and closer than this one?
-      if (ego_s_ <= other_s && other_gap < l.front.gap)
+      if (ego_s <= other_s && other_gap < l.front.gap)
       {
-        l.front = LaneInfo::CarOnLane{
-          true,
-          other.uid,
-          other_gap,
-          other_speed
-        };
+        l.front = LaneInfo::CarOnLane(true, other.uid, other_gap, other_speed);
       }
 
       // Is the other car behind me and closer than minimal horizon...
-      if (other_s < ego_s_ && other_gap < std::min(Utility::MIN_HORIZON, l.back.gap))
+      if (other_s < ego_s && other_gap < std::min(Utility::MIN_HORIZON, l.back.gap))
       {
-        l.back = LaneInfo::CarOnLane{
-          true,
-          other.uid,
-          other_gap,
-          other_speed
-        };
+        l.back = LaneInfo::CarOnLane(true, other.uid, other_gap, other_speed);
       }
     }
   }

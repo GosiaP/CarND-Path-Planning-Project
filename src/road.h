@@ -1,11 +1,9 @@
-#ifndef ROAD_H
-#define ROAD_H
+#ifndef _ROAD_H
+#define _ROAD_H
 
 #include <vector>
 #include <assert.h>
 #include "car.h"
-#include "utility.h"
-
 
   struct Path
   {
@@ -40,6 +38,10 @@
     }
   };
 
+  /**
+  * Encapsulated information about situation 
+  * on particular lane.
+  */
   struct LaneInfo
   {
     struct CarOnLane
@@ -76,13 +78,19 @@
   };
 
 
+  /**
+  * Encapsulated information about lanes on a road.
+  */
   struct LaneInfoOnRoad : public std::vector<LaneInfo>
   {
     LaneInfoOnRoad(std::size_t s);
-    static LaneInfoOnRoad create(double ego_s_, Traffic const& traffic);
+    static LaneInfoOnRoad create(double ego_s, Traffic const& traffic);
   };
 
-
+  /**
+  * Encapsulated information about situation on road (traffic),
+  * about ego car and other cars on the same road side.
+  */
   struct Traffic
   {
     EgoCar ego;         // ego car
@@ -93,4 +101,4 @@
     Traffic(nlohmann::json const& j);
   };
 
-#endif // ROAD_H
+#endif // _ROAD_H

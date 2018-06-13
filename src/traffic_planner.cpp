@@ -273,7 +273,7 @@ Path TrafficPlanner::createTrajectory(EgoCarLocalization const& egoCarLo, Traffi
 {
   tk::spline fSpline = interpolatePath(egoCarLo);
 
-  // ddd previous path for continuity
+  // add previous path for continuity
   Path path = traffic.previous_path;
 
   // set a horizon of 30 m
@@ -314,11 +314,13 @@ void TrafficPlanner::adaptSpeed(LaneInfoOnRoad const& roadLI, EgoCar const& ego)
       << std::endl;
   }
 
-  if (mBehaviour.speed < ego.speed) {
+  if (mBehaviour.speed < ego.speed)
+  {
     // slow down
     mBehaviour.speed = std::max(mBehaviour.speed, ego.speed - Utility::ACCELER_LIMIT);
   }
-  else if (ego.speed < mBehaviour.speed) {
+  else if (ego.speed < mBehaviour.speed) 
+  {
     // speed up
     mBehaviour.speed = std::min(mBehaviour.speed, ego.speed + Utility::ACCELER_LIMIT);
   }

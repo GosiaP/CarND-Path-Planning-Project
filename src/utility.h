@@ -13,7 +13,7 @@
   };
 
 
-
+  
   struct Utility
   {
     static const double pi()
@@ -28,13 +28,13 @@
     // constant for infinity
     static const double INF;
 
-    // paths length -  50 points
+    // paths(trajectory) length -  50 points
     static const std::size_t PATH_ITEM_COUNT = 50u;
 
-    // safe distance buffer for lane changes in front of me
+    // safe distance buffer for lane changes in front of ego car
     static const double LANE_CHANGE_FRONT_DIST; // [m]
 
-    // safe distance buffer for lane changes at the back
+    // safe distance buffer for lane changes in back of ego car
     static const double LANE_CHANGE_BACK_DIST; // [m]
 
     // horizon in the lane environment model
@@ -135,7 +135,6 @@
       return s_;
     }
 
-
     /**
      * Calculates vector angle in radians.
      * @param x - vector x component
@@ -157,30 +156,41 @@
       return fabs(num) < std::numeric_limits<double>::epsilon();
     }
 
-
-    // Lane center from the origin (d)
+    /**
+    * Provides lane center from the origin in d Frenet.
+    * @param lane_id - lane number.
+    * @return d Frenet coordinate.
+    */
     static double getLaneCenter_D(int lane_id_)
     {
       return (0.5 + lane_id_) * 4.0;
     }
 
-    // Lane center with safety margin in border lanes 
-    static double getSafeLaneCenter_D(int lane_id_)
+    /**
+    * Provides lane center with safety margin in border lanes.
+    * @param lane_id - lane number.
+    * @return d Frenet coordinate.
+    */
+    static double getSafeLaneCenter_D(int lane_id)
     {
-      auto c = getLaneCenter_D(lane_id_);
+      auto c = getLaneCenter_D(lane_id);
 
-      if (lane_id_ == 0)
+      if (lane_id == 0)
         c += LANE_MARGIN;
-      else if (lane_id_ == 2)
+      else if (lane_id == 2)
         c -= LANE_MARGIN;
 
       return c;
     }
 
-    // Lane at a given distance from the road center
-    static int getLaneId(double d_)
+    /**
+    * Provides a lane number from road center.
+    * @param d - d coordinate in Frenet
+    * @return lane number.
+    */
+    static int getLaneId(double d)
     {
-      return std::max(0, int(d_) / 4);
+      return std::max(0, int(d) / 4);
     }
   };
 

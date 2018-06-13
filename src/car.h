@@ -1,10 +1,6 @@
 #ifndef CAR_H
 #define CAR_H
 
-#include <vector>
-#include <assert.h>
-#include "Eigen-3.3/Eigen/Core"
-#include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 
 struct Traffic;
@@ -45,6 +41,10 @@ struct EgoCar {
   EgoCar(nlohmann::json const& j);
 };
 
+/**
+* Enacapsulates current ego position and its prvious position
+* inclusive a lane number th ecar is located.
+*/
 struct EgoCarLocalization
 {
   EgoCar ego; // ego car

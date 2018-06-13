@@ -3,9 +3,6 @@
 
 #include <vector>
 #include <assert.h>
-#include "Eigen-3.3/Eigen/Core"
-#include "Eigen-3.3/Eigen/QR"
-#include "json.hpp"
 #include "car.h"
 #include "map.h"
 #include "road.h"
@@ -37,6 +34,11 @@
     }
   };
 
+  /**
+  * Is responsible for estiamation of current situation on a road.
+  * Best lane for ego car is estimated and coresponding action
+  * will be started. The action is represented by behaviour.
+  */
   class BehaviourPlanner
   {
   private:
@@ -44,24 +46,36 @@
 
     double cte(EgoCarLocalization const& egoCarLo) const;
 
-    // discrete cost function
+    /**
+    * Discrete cost function to find current best lane
+    * that will be target lane for ego car.
+    */
     int findBestLane(EgoCarLocalization const& egoCarLo, LaneInfoOnRoad const& roadLI) const;
   
   public:
     BehaviourPlanner();
-    Behaviour const& getBehaviour() const
+    void getNextBehaviour(HighwayMap const& map, EgoCarLocalization const& egoCarLo, LaneInfoOnRoad const &roadLI);
+
+    Behaviour const& getBehaviour() const 
     {
       return mBehaviour;
     }
-
-    void getNextBehaviour(HighwayMap const& map, EgoCarLocalization const& egoCarLo, LaneInfoOnRoad const &roadLI);
   };
 
-
+  /**
+  * Encasulates planner to find best trajectory for ego car.
+  * Uses ego car planning state (behaviour), sensor fusion predictions to find the trajectory.
+  * Ensures that ego using this trajectory with have no collision with
+  * others cars and will not violoate speed limit.
+  */
   class TrafficPlanner
   {
   public:
     TrafficPlanner(const HighwayMap &map);
+
+    /**
+    * Provides a new path of ego car.
+    */
     Path getEgoCarPath(Traffic const& traffic);
 
   private:
@@ -69,8 +83,18 @@
     BehaviourPlanner  mPlanner;
     Behaviour         mBehaviour;
 
+    /**
+    * Ensures the limit speed of ego car is not violated.
+    */
     void adaptSpeed(LaneInfoOnRoad const& roadLaneInfo, EgoCar const& ego);
+
+    /**
+    * Determine a discrete sequence of trajectory base on
+    * previous and current ego car position. Interpolates the postion
+    * to cubic spline curve.
+    */
     tk::spline interpolatePath(EgoCarLocalization const& egoCarLo) const;
+
     Path createTrajectory(EgoCarLocalization const& egoCarLo, Traffic const& traffic) const;
   };
 
